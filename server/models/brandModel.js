@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const brandSchema = new mongoose.Schema({
-  _id:{
+  _id: {
     type: String,
     required: true
   },

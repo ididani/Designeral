@@ -1,23 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const Brand = require("../models/brandModel"); // Adjust the path as necessary
+const Brand = require("../models/brandModel");
 
-// GET route for fetching all brands
 router.get("/", async (req, res) => {
   console.log("Received a request to /api/brands");
   try {
-    const brands = await Brand.find(); // Fetch all brands from the database
-    res.json(brands); // Respond with all brands
+    const brands = await Brand.find();
+    res.json(brands);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to load brands" });
   }
 });
 
-// GET route for fetching a specific brand by ID
 router.get("/:id", async (req, res) => {
   try {
-    const brand = await Brand.findById(req.params.id); // Use 'Brand', not 'BrandModel'
+    const brand = await Brand.findById(req.params.id);
     if (!brand) {
       return res.status(404).json({ message: "Brand not found" });
     }

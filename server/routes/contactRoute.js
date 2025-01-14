@@ -2,8 +2,6 @@ const express = require('express');
 const Contacts = require('../models/contactModel');
 const app = express();
 
-
-// Get all contact submissions
 app.get('/', async (req, res) => {
   try {
     const contacts = await Contacts.find();
@@ -13,7 +11,6 @@ app.get('/', async (req, res) => {
   }
 });
 
-// Get a specific contact submission by ID
 app.get('/:id', async (req, res) => {
   try {
     const contact = await Contacts.findById(req.params.id);
@@ -26,7 +23,6 @@ app.get('/:id', async (req, res) => {
   }
 });
 
-// Create a new contact submission
 app.post('/', async (req, res) => {
   const contact = new Contacts({
     firstName: req.body.firstName,
@@ -36,7 +32,6 @@ app.post('/', async (req, res) => {
   });
 
   try {
-    // Save contact submission to the database
     const newContact = await contact.save();
     res.status(201).json(newContact);
   } catch (err) {
@@ -44,7 +39,6 @@ app.post('/', async (req, res) => {
   }
 });
 
-// Delete a contact submission
 app.delete('/:id', async (req, res) => {
   try {
     const contact = await Contacts.findByIdAndDelete(req.params.id);

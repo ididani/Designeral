@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
-  _id: {
-    type: String,
-    required: true,
-  },
   name: {
     type: String,
     required: true,
@@ -40,9 +36,8 @@ const productSchema = new mongoose.Schema({
   brand: {
     type: String,
     required: true,
-    trim: true,
   },
-}, { _id: false }); // This tells Mongoose not to auto-generate an _id
+});
 
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

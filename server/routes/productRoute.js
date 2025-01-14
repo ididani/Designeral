@@ -2,6 +2,31 @@ const express = require("express");
 const Product = require("../models/productModel");
 const router = express.Router();
 
+router.get("/suggestions", async (req, res) => {
+  console.log("Suggestions route hit");
+  try {
+    const { brand, currentProductId } = req.query;
+    console.log("Brand:", brand, "Current Product ID:", currentProductId);
+
+    if (!brand) {
+      return res.status(400).json({ message: "Brand parameter is required." });
+    }
+
+    const products = await Product.find({
+      brand: { $regex: new RegExp(brand, "i") },
+      _id: { $ne: currentProductId }
+    }).limit(4);
+
+    console.log("Products found:", products);
+
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching suggestions:", error);
+    res.status(500).json({ message: "Server error. Failed to fetch product suggestions." });
+  }
+});
+
+
 router.get("/:category/:subCategory/:id", async (req, res) => {
   console.log("Received request params:", req.params);
   try {
@@ -60,22 +85,40 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
-  const product = new Product({
-    name: req.body.name,
-    price: req.body.price,
-    image: req.body.image,
-    category: req.body.category,
-    description: req.body.description,
-    quantityStock: req.body.quantityStock,
-    brand: req.body.brand,
-  });
-
+router.post("/add", async (req, res) => {
   try {
+    const requiredFields = [
+      "name",
+      "price",
+      "category",
+      "subCategory",
+      "quantityStock",
+    ];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({ message: `${field} is required` });
+      }
+    }
+
+    // Create new product object without specifying _id
+    const product = new Product({
+      name: req.body.name,
+      price: req.body.price,
+      image: req.body.image || "",
+      category: req.body.category,
+      subCategory: req.body.subCategory,
+      description: req.body.description || "",
+      quantityStock: req.body.quantityStock,
+      brand: req.body.brand || "",
+    });
+
     const newProduct = await product.save();
     res.status(201).json(newProduct);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("Error adding new product:", err);
+    res
+      .status(400)
+      .json({ message: "Error adding new product", error: err.message });
   }
 });
 
@@ -90,28 +133,6 @@ router.put("/:id", async (req, res) => {
     res.status(200).json(product);
   } catch (err) {
     res.status(400).json({ message: err.message });
-  }
-});
-router.get("/suggestions", async (req, res) => {
-  try {
-    const randomProducts = await Product.aggregate([{ $sample: { size: 6 } }]);
-    res.status(200).json(randomProducts);
-  } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching random products", error: err.message });
-  }
-});
-// Delete a product
-router.delete("/:id", async (req, res) => {
-  try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-    res.status(200).json({ message: "Product deleted" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
   }
 });
 
@@ -133,7 +154,7 @@ router.get("/search", async (req, res) => {
 
   try {
     const products = await Product.find({
-      name: { $regex: query, $options: "i" }, // Case-insensitive search
+      name: { $regex: query, $options: "i" },
     }).limit(3); // Limit to 3 results
     res.json(products);
   } catch (error) {
